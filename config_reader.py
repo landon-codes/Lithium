@@ -2,7 +2,7 @@ import configparser
 from pathlib import Path
 
 
-class config_file:
+class ConfigFile:
     def __init__(self, file_path: Path):
         self._file_path = file_path
 
