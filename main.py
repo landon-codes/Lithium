@@ -16,7 +16,7 @@ if not config_file_path.exists():
 config = config_reader.ConfigFile(config_file_path)
 
 
-# TODO
+# TODO make this support custom export names
 def build_program(config: config_reader.ConfigFile) -> None:
     build_command = []
 
@@ -58,9 +58,10 @@ def build_program(config: config_reader.ConfigFile) -> None:
 
     subprocess.run(build_command, check=False, stderr=sys.stderr, text=True)
 
-# TODO
+# TODO make this support custom export names
 def run_program(config: config_reader.ConfigFile) -> None:
-    print("Program run!")
+    build_program(config)
+    subprocess.run("./a.out")
 
 
 match sys.argv[1]:
