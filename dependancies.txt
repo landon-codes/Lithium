@@ -1,0 +1,3 @@
+This is the list of dependancies used by the Lithium build system.
+
+configparser: Used to read/write the .ini files that the program uses.
