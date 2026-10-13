@@ -14,3 +14,6 @@ class ConfigFile:
 
     def get_section(self, section_name: str) -> configparser.SectionProxy:
         return self._config[section_name]
+
+    def contains_section(self, section_name: str) -> bool:
+        return section_name in self._config["build type"]
