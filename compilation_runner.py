@@ -4,7 +4,25 @@ from compiler import Compiler
 
 #TODO
 def _build_unity(compiler: Compiler):
-    pass
+    build_command = []
+
+    compiler_name = compiler.get_compiler()
+    if compiler_name == None:
+        print("No supported compiler could be found.")
+        exit(-1)
+    build_command += compiler_name
+
+    standard = compiler.get_standard()
+    if standard != None:
+        build_command += standard
+
+    extra_warnings = compiler.get_extra_warnings()
+    if extra_warnings != None:
+        build_command += extra_warnings
+
+    warning_error = compiler.get_warning_error()
+    if warning_error != None:
+        build_command += warning_error
 
 #TODO
 def _build_standard(compiler: Compiler):
