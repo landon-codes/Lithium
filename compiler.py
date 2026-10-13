@@ -34,5 +34,17 @@ class Compiler:
             Compiler._detect_compilers()
 
     @staticmethod  # TODO: Implement automatic compiler detection
-    def _detect_compilers():
-        pass
+    def _detect_compilers() -> str | None:         
+        compiler_calls = {
+            "clang": ["clang", "--version"],
+            "g++": ["g++", "--version"],
+            "gcc": ["gcc", "--version"],
+            "msvc": ["cl", "--version"],
+            "tcc": ["tcc", "--version"]
+        }
+
+        for compiler, value in compiler_calls.items():
+            try:
+                subprocess.run(value, capture_output=True, check=True, text=True)
+                return compiler
+            finally: pass
