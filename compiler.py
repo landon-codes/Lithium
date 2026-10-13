@@ -33,6 +33,39 @@ class Compiler:
         else:
             return self._detect_compilers()
 
+    def get_standard(self) -> str | None:
+        defaultValue = "standard"
+
+        if self._compilation_data == None:
+            return defaultValue
+
+        if "standard" in self._compilation_data:
+            return self._compilation_data["standard"]
+        else:
+            return defaultValue
+
+    def get_extra_warnings(self) -> bool:
+        defaultValue = False
+
+        if self._compilation_data == None:
+            return defaultValue
+
+        if "extra_warnings" in self._compilation_data:
+            return bool(self._compilation_data["extra_warnings"])
+        else:
+            return defaultValue
+
+    def get_warning_error(self) -> bool:
+        defaultValue = False
+
+        if self._compilation_data == None:
+            return defaultValue
+
+        if "warning_error" in self._compilation_data:
+            return bool(self._compilation_data["warning_error"])
+        else:
+            return defaultValue
+
     @staticmethod  # TODO: Implement automatic compiler detection
     def _detect_compilers() -> str | None:         
         compiler_calls = {
