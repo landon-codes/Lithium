@@ -77,6 +77,21 @@ class Compiler:
         else:
             return default_value
 
+    def get_build_type(self) -> str:
+        default_value = "standard"
+
+        if self._build_data == None:
+            return default_value
+
+        if "type" in self._build_data:
+            return self._build_data["type"]
+        else:
+            return default_value
+
+    def get_entry_point(self) -> str | None:
+        if self._build_data != None and "entry_point" in self._build_data:
+            return self._build_data["entry_point"]
+
     @staticmethod 
     def _detect_compilers() -> str | None:         
         compiler_calls = {
