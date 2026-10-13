@@ -34,37 +34,48 @@ class Compiler:
             return self._detect_compilers()
 
     def get_standard(self) -> str | None:
-        defaultValue = "standard"
+        default_value = "standard"
 
         if self._compilation_data == None:
-            return defaultValue
+            return default_value
 
         if "standard" in self._compilation_data:
             return self._compilation_data["standard"]
         else:
-            return defaultValue
+            return default_value
 
     def get_extra_warnings(self) -> bool:
-        defaultValue = False
+        default_value = False
 
         if self._compilation_data == None:
-            return defaultValue
+            return default_value
 
         if "extra_warnings" in self._compilation_data:
             return bool(self._compilation_data["extra_warnings"])
         else:
-            return defaultValue
+            return default_value
 
     def get_warning_error(self) -> bool:
-        defaultValue = False
+        default_value = False
 
         if self._compilation_data == None:
-            return defaultValue
+            return default_value
 
         if "warning_error" in self._compilation_data:
             return bool(self._compilation_data["warning_error"])
         else:
-            return defaultValue
+            return default_value
+
+    def get_enable_extensions(self) -> bool:
+        default_value = False
+
+        if self._compilation_data == None:
+            return default_value
+
+        if "enable_extentions" in self._compilation_data:
+            return self._compilation_data["enable_extensions"]
+        else:
+            return default_value
 
     @staticmethod 
     def _detect_compilers() -> str | None:         
