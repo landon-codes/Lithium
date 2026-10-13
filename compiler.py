@@ -66,7 +66,7 @@ class Compiler:
         else:
             return defaultValue
 
-    @staticmethod  # TODO: Implement automatic compiler detection
+    @staticmethod 
     def _detect_compilers() -> str | None:         
         compiler_calls = {
             "clang": ["clang", "--version"],
