@@ -44,7 +44,7 @@ class Compiler:
             compiler = self.get_compiler()
             match compiler:
                 case "gcc" | "g++" | "clang":
-                    return f"--std={standard}"
+                    return f"-std={standard}"
                 case "tcc":
                     print("TCC does not support configuration of the standard.")
                     exit(-1)
@@ -53,14 +53,21 @@ class Compiler:
                 
 
 
-    def get_extra_warnings(self) -> bool:
-        default_value = False
+    def get_extra_warnings(self) -> str | None:
+        default_value = None
 
         if self._compilation_data == None:
             return default_value
 
-        if "extra_warnings" in self._compilation_data:
-            return bool(self._compilation_data["extra_warnings"])
+        if "extra_warnings" and self._compilation_data["extra_warnings"]:
+            compiler = self.get_compiler()
+            match compiler:
+                case "gcc" | "g++" | "clang":
+                    return "-Wall -Wextra"
+                case "tcc":
+                    return "-Wall"
+                case "cl":
+                    return "/W4"
         else:
             return default_value
 
