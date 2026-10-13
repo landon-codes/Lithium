@@ -16,4 +16,4 @@ class ConfigFile:
         return self._config[section_name]
 
     def contains_section(self, section_name: str) -> bool:
-        return section_name in self._config("build type")
+        return section_name in self._config["build type"]

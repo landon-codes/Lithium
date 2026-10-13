@@ -26,12 +26,12 @@ class Compiler:
 
     def get_compiler(self) -> str | None:
         if self._compilation_data == None:
-            return None
+            return self._detect_compilers()
 
         if "compiler" in self._compilation_data:
             return self._compilation_data["compiler"]
         else:
-            Compiler._detect_compilers()
+            return self._detect_compilers()
 
     @staticmethod  # TODO: Implement automatic compiler detection
     def _detect_compilers() -> str | None:         
