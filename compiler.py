@@ -59,7 +59,7 @@ class Compiler:
         if self._compilation_data == None:
             return default_value
 
-        if "extra_warnings" and self._compilation_data["extra_warnings"]:
+        if "extra_warnings" and bool(self._compilation_data["extra_warnings"]):
             compiler = self.get_compiler()
             match compiler:
                 case "gcc" | "g++" | "clang":
@@ -77,8 +77,16 @@ class Compiler:
         if self._compilation_data == None:
             return default_value
 
-        if "warning_error" in self._compilation_data:
-            return bool(self._compilation_data["warning_error"])
+        if "warning_error" in self._compilation_data and bool(self._compilation_data["warning_error"]):
+            compiler = self.get_compiler()
+            match compiler:
+                case "gcc" | "g++" | "clang":
+                    return "-Werror"
+                case "tcc":
+                    print("Compiling warnings as errors is not supported by tcc.")
+                    exit(-1)
+                case "cl":
+                    return "/WX"
         else:
             return default_value
 
