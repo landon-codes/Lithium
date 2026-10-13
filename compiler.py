@@ -2,6 +2,7 @@ import configparser
 import subprocess
 from typing import Optional
 from config_reader import ConfigFile
+from sys import exit
 
 
 class Compiler:
@@ -34,15 +35,23 @@ class Compiler:
             return self._detect_compilers()
 
     def get_standard(self) -> str | None:
-        default_value = "standard"
-
         if self._compilation_data == None:
-            return default_value
+            return None
 
         if "standard" in self._compilation_data:
-            return self._compilation_data["standard"]
-        else:
-            return default_value
+            standard = self._compilation_data["standard"]
+
+            compiler = self.get_compiler()
+            match compiler:
+                case "gcc" | "g++" | "clang":
+                    return f"--std={standard}"
+                case "tcc":
+                    print("TCC does not support configuration of the standard.")
+                    exit(-1)
+                case "cl":
+                    return f"/std:{standard}"
+                
+
 
     def get_extra_warnings(self) -> bool:
         default_value = False
