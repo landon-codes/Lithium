@@ -90,14 +90,28 @@ class Compiler:
         else:
             return default_value
 
-    def get_enable_extensions(self) -> bool:
-        default_value = False
+    def get_enable_extensions(self) -> str | None:
+        default_value = None
 
         if self._compilation_data == None:
             return default_value
 
-        if "enable_extentions" in self._compilation_data:
-            return self._compilation_data["enable_extensions"]
+        if "enable_extentions" in self._compilation_data and not bool(self._compilation_data["enable_extentions"]):
+            compiler = self.get_compiler()
+            match compiler:
+                case "gcc" | "g++" | "clang":
+                    return "-pedantic-errors"
+                case "tcc":
+                    print("Disabling GNU extensions is not supported by tcc.")
+                    exit(-1)
+                case "cl":
+                    language = self._detect_language() #TODO
+
+                    if language == "c":
+                        return "/W4"
+                    elif language == "c++":
+                        return "/permissive-"
+
         else:
             return default_value
 
@@ -131,3 +145,8 @@ class Compiler:
                 subprocess.run(value, capture_output=True, check=True, text=True)
                 return compiler
             finally: pass
+
+    #TODO
+    def _detect_language(self) -> str:
+        print("The _detect language function in compiler.py has not been implemented yet.")
+        exit(-1)

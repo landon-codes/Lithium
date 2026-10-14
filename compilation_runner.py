@@ -29,6 +29,10 @@ def _get_build_arguments(compiler: Compiler) -> list[str]:
     if warning_error != None:
         build_arguments += warning_error
 
+    extensions_enabled = compiler.get_enable_extensions
+    if extensions_enabled != None:
+        build_arguments += extensions_enabled
+
     return build_arguments
 
 #TODO
