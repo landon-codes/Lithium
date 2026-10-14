@@ -2,37 +2,48 @@ from sys import exit
 from config_reader import ConfigFile
 from compiler import Compiler
 
-#TODO
-def _build_unity(compiler: Compiler):
-    build_command = []
+"""
+Returns the first part of the build command.
+It contains the compiler name and all the arguments.
+The responsibility to get the proper files and
+finish the command falls on the other functions.
+"""
+def _get_build_arguments(compiler: Compiler) -> list[str]:
+    build_arguments = []
 
     compiler_name = compiler.get_compiler()
     if compiler_name == None:
         print("No supported compiler could be found.")
         exit(-1)
-    build_command += compiler_name
+    build_arguments += compiler_name
 
     standard = compiler.get_standard()
     if standard != None:
-        build_command += standard
+        build_arguments += standard
 
     extra_warnings = compiler.get_extra_warnings()
     if extra_warnings != None:
-        build_command += extra_warnings
+        build_arguments += extra_warnings
 
     warning_error = compiler.get_warning_error()
     if warning_error != None:
-        build_command += warning_error
+        build_arguments += warning_error
+
+    return build_arguments
 
 #TODO
-def _build_standard(compiler: Compiler):
+def _build_unity(compiler: Compiler) -> None:
     pass
 
 #TODO
-def _build_full(compiler: Compiler):
+def _build_standard(compiler: Compiler) -> None:
     pass
 
-def build(compiler: Compiler):
+#TODO
+def _build_full(compiler: Compiler) -> None:
+    pass
+
+def build(compiler: Compiler) -> None:
     build_type = compiler.get_build_type()
 
     match build_type:
