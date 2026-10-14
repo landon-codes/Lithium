@@ -1,6 +1,7 @@
 from sys import exit
 from config_reader import ConfigFile
 from compiler import Compiler
+import subprocess
 
 """
 Returns the first part of the build command.
@@ -37,7 +38,12 @@ def _get_build_arguments(compiler: Compiler) -> list[str]:
 
 #TODO
 def _build_unity(compiler: Compiler) -> None:
-    pass
+    arguments = _get_build_arguments(compiler)
+
+    entry_point = compiler.get_entry_point()
+    arguments.append(entry_point)
+
+    subprocess.run(arguments)
 
 #TODO
 def _build_standard(compiler: Compiler) -> None:
