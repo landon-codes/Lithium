@@ -3,6 +3,7 @@ import subprocess
 from typing import Optional
 from config_reader import ConfigFile
 from sys import exit
+import pathlib
 
 
 class Compiler:
@@ -105,7 +106,7 @@ class Compiler:
                     print("Disabling GNU extensions is not supported by tcc.")
                     exit(-1)
                 case "cl":
-                    language = self._detect_language() #TODO
+                    language = self._detect_language()
 
                     if language == "c":
                         return "/W4"
@@ -146,7 +147,18 @@ class Compiler:
                 return compiler
             finally: pass
 
-    #TODO
-    def _detect_language(self) -> str:
-        print("The _detect language function in compiler.py has not been implemented yet.")
-        exit(-1)
+    def _detect_language(self) -> str | None:
+        # Try to get the language from the entry point
+        entry_point = self.get_entry_point()
+        if entry_point != None:
+            return pathlib.Path(entry_point).suffix
+
+        # If the entry point fails, try detecting it manually
+        project_root = self._config.get_file_path().parent
+        project_files = [f for f in project_root.rglob("*") if f.is_file()]
+
+        for file in project_files:
+            if file.suffix == "c":
+                return "c"
+            elif file.suffix == "cpp" or file.suffix == "c++":
+                return "c++"
