@@ -71,8 +71,8 @@ class Compiler:
         else:
             return default_value
 
-    def get_warning_error(self) -> bool:
-        default_value = False
+    def get_warning_error(self) -> str | None:
+        default_value = None
 
         if self._compilation_data == None:
             return default_value
