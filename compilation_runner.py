@@ -1,7 +1,8 @@
-from sys import exit
-from config_reader import ConfigFile
-from compiler import Compiler
+import os
 import subprocess
+import sys
+
+from compiler import Compiler
 
 """
 Returns the first part of the build command.
@@ -9,13 +10,15 @@ It contains the compiler name and all the arguments.
 The responsibility to get the proper files and
 finish the command falls on the other functions.
 """
+
+
 def _get_build_arguments(compiler: Compiler) -> list[str]:
     build_arguments = []
 
     compiler_name = compiler.get_compiler()
     if compiler_name == None:
         print("No supported compiler could be found.")
-        exit(-1)
+        sys.exit(-1)
     build_arguments += compiler_name
 
     standard = compiler.get_standard()
@@ -32,26 +35,36 @@ def _get_build_arguments(compiler: Compiler) -> list[str]:
 
     extensions_enabled = compiler.get_enable_extensions
     if extensions_enabled != None:
-        build_arguments += extensions_enabled
+        build_arguments.append(extensions_enabled)
 
     return build_arguments
 
-#TODO
+
+# TODO
 def _build_unity(compiler: Compiler) -> None:
     arguments = _get_build_arguments(compiler)
 
     entry_point = compiler.get_entry_point()
-    arguments.append(entry_point)
+    if entry_point != None:
+        arguments.append(entry_point)
+    else:
+        print("No entry point could be found when running the program.")
+        sys.exit(-1)
 
-    subprocess.run(arguments)
+    subprocess.run(arguments, check=False, stderr=sys.stderr, text=True)
 
-#TODO
+
+# TODO
 def _build_standard(compiler: Compiler) -> None:
-    pass
+    print("Standard builds are not supported yet.")
+    sys.exit(-1)
 
-#TODO
+
+# TODO
 def _build_full(compiler: Compiler) -> None:
-    pass
+    print("Full builds are not supported yet.")
+    sys.exit(-1)
+
 
 def build(compiler: Compiler) -> None:
     build_type = compiler.get_build_type()
@@ -64,6 +77,23 @@ def build(compiler: Compiler) -> None:
         case "full build":
             _build_full(compiler)
         case _:
-            print(f"The build type, \"{build_type}\" does not appear to be supported.")
-            print("The currently supported build types are:1. Standard\n2. Unity\n3. Full build")
-            exit(-1)
+            print(f'The build type, "{build_type}" does not appear to be supported.')
+            print(
+                "The currently supported build types are:1. Standard\n2. Unity\n3. Full build"
+            )
+            sys.exit(-1)
+
+
+# TODO: Implement the option for application names on build
+def run(compiler: Compiler) -> None:
+    build(compiler)
+
+    # Detect OS format
+    application_name: str
+    match os.name:
+        case "nt":
+            application_name = "./a.exe"
+        case _:
+            application_name = "./a.out"
+
+    subprocess.run([application_name], check=False, text=True, stderr=sys.stderr)
