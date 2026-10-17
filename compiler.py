@@ -9,7 +9,7 @@ from config_reader import ConfigFile
 class Compiler:
     def __init__(self, config_data: ConfigFile):
         self._config = config_data
-        
+
         # Reads the compilation data from the config file.
         # The compilation data is set to null if none is written.
         self._compilation_data: configparser.SectionProxy | None
@@ -58,7 +58,10 @@ class Compiler:
         if self._compilation_data == None:
             return default_value
 
-        if "extra_warnings" and bool(self._compilation_data["extra_warnings"]):
+        if (
+            "extra_warnings" in self._compilation_data
+            and self._compilation_data.getboolean("extra_warnings")
+        ):
             compiler = self.get_compiler()
             match compiler:
                 case "gcc" | "g++" | "clang":
@@ -76,8 +79,9 @@ class Compiler:
         if self._compilation_data == None:
             return default_value
 
-        if "warning_error" in self._compilation_data and bool(
-            self._compilation_data["warning_error"]
+        if (
+            "warning_error" in self._compilation_data
+            and self._compilation_data.getboolean("warning_error")
         ):
             compiler = self.get_compiler()
             match compiler:
@@ -97,8 +101,9 @@ class Compiler:
         if self._compilation_data == None:
             return default_value
 
-        if "enable_extentions" in self._compilation_data and not bool(
-            self._compilation_data["enable_extentions"]
+        if (
+            "enable_extentions" in self._compilation_data
+            and not self._compilation_data.getboolean("enable_extensions")
         ):
             compiler = self.get_compiler()
             match compiler:
