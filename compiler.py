@@ -1,15 +1,22 @@
 import configparser
-import subprocess
-from typing import Optional
-from config_reader import ConfigFile
-from sys import exit
 import pathlib
+import subprocess
+from sys import exit
+
+from config_reader import ConfigFile
 
 
 class Compiler:
     def __init__(self, config_data: ConfigFile):
         self._config = config_data
 
+        # DEBUG
+        if self._config == None:
+            print("The config is None")
+            exit(-1)
+        print(str(self._config.contains_section("compilation")))
+        print(str(self._config.contains_section("build type")))
+        
         # Reads the compilation data from the config file.
         # The compilation data is set to null if none is written.
         self._compilation_data: configparser.SectionProxy | None
@@ -24,6 +31,8 @@ class Compiler:
         if self._config.contains_section("build type"):
             self._build_data = self._config.get_section("build type")
         else:
+            # DEBUG
+            print("No build data could be found")
             self._build_data = None
 
     def get_compiler(self) -> str | None:
@@ -51,10 +60,8 @@ class Compiler:
                     exit(-1)
                 case "cl":
                     return f"/std:{standard}"
-                
 
-
-    def get_extra_warnings(self) -> str | None:
+    def get_extra_warnings(self) -> list[str] | None:
         default_value = None
 
         if self._compilation_data == None:
@@ -64,11 +71,11 @@ class Compiler:
             compiler = self.get_compiler()
             match compiler:
                 case "gcc" | "g++" | "clang":
-                    return "-Wall -Wextra"
+                    return ["-Wall", "-Wextra"]
                 case "tcc":
-                    return "-Wall"
+                    return ["-Wall"]
                 case "cl":
-                    return "/W4"
+                    return ["/W4"]
         else:
             return default_value
 
@@ -78,7 +85,9 @@ class Compiler:
         if self._compilation_data == None:
             return default_value
 
-        if "warning_error" in self._compilation_data and bool(self._compilation_data["warning_error"]):
+        if "warning_error" in self._compilation_data and bool(
+            self._compilation_data["warning_error"]
+        ):
             compiler = self.get_compiler()
             match compiler:
                 case "gcc" | "g++" | "clang":
@@ -97,7 +106,9 @@ class Compiler:
         if self._compilation_data == None:
             return default_value
 
-        if "enable_extentions" in self._compilation_data and not bool(self._compilation_data["enable_extentions"]):
+        if "enable_extentions" in self._compilation_data and not bool(
+            self._compilation_data["enable_extentions"]
+        ):
             compiler = self.get_compiler()
             match compiler:
                 case "gcc" | "g++" | "clang":
@@ -120,32 +131,37 @@ class Compiler:
         default_value = "standard"
 
         if self._build_data == None:
+            # DEBUG
+            print("Build data is none")
             return default_value
 
         if "type" in self._build_data:
             return self._build_data["type"]
         else:
+            # DEBUG
+            print("Build data was not written")
             return default_value
 
     def get_entry_point(self) -> str | None:
         if self._build_data != None and "entry_point" in self._build_data:
             return self._build_data["entry_point"]
 
-    @staticmethod 
-    def _detect_compilers() -> str | None:         
+    @staticmethod
+    def _detect_compilers() -> str | None:
         compiler_calls = {
             "clang": ["clang", "--version"],
             "g++": ["g++", "--version"],
             "gcc": ["gcc", "--version"],
             "msvc": ["cl", "--version"],
-            "tcc": ["tcc", "--version"]
+            "tcc": ["tcc", "--version"],
         }
 
         for compiler, value in compiler_calls.items():
             try:
                 subprocess.run(value, capture_output=True, check=True, text=True)
                 return compiler
-            finally: pass
+            finally:
+                pass
 
     def _detect_language(self) -> str | None:
         # Try to get the language from the entry point

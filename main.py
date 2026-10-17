@@ -10,7 +10,7 @@ if len(sys.argv) <= 1:
     print("No arguments were provided.")
     sys.exit(-1)
 
-config_file_path = Path("lithium.ini")
+config_file_path = Path("./lithium.ini")
 if not config_file_path.exists():
     print(
         "No config file could be found.\nMake sure you have a config file named `lithium.ini`!"
@@ -25,3 +25,5 @@ match sys.argv[1]:
         compilation_runner.build(compiler)
     case "run":
         compilation_runner.run(compiler)
+    case "getargs":
+        print(compilation_runner.get_build_arguments(compiler))

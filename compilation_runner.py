@@ -4,45 +4,37 @@ import sys
 
 from compiler import Compiler
 
-"""
-Returns the first part of the build command.
-It contains the compiler name and all the arguments.
-The responsibility to get the proper files and
-finish the command falls on the other functions.
-"""
 
-
-def _get_build_arguments(compiler: Compiler) -> list[str]:
+def get_build_arguments(compiler: Compiler) -> list[str]:
     build_arguments = []
 
     compiler_name = compiler.get_compiler()
     if compiler_name == None:
         print("No supported compiler could be found.")
         sys.exit(-1)
-    build_arguments += compiler_name
+    build_arguments.append(compiler_name)
 
     standard = compiler.get_standard()
     if standard != None:
-        build_arguments += standard
+        build_arguments.append(standard)
 
     extra_warnings = compiler.get_extra_warnings()
     if extra_warnings != None:
-        build_arguments += extra_warnings
+        build_arguments.extend(extra_warnings)
 
     warning_error = compiler.get_warning_error()
     if warning_error != None:
-        build_arguments += warning_error
+        build_arguments.append(warning_error)
 
-    extensions_enabled = compiler.get_enable_extensions
+    extensions_enabled = compiler.get_enable_extensions()
     if extensions_enabled != None:
         build_arguments.append(extensions_enabled)
 
     return build_arguments
 
 
-# TODO
 def _build_unity(compiler: Compiler) -> None:
-    arguments = _get_build_arguments(compiler)
+    arguments = get_build_arguments(compiler)
 
     entry_point = compiler.get_entry_point()
     if entry_point != None:
@@ -68,7 +60,7 @@ def _build_full(compiler: Compiler) -> None:
 
 def build(compiler: Compiler) -> None:
     build_type = compiler.get_build_type()
-
+    
     match build_type:
         case "unity":
             _build_unity(compiler)
