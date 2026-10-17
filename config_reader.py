@@ -9,10 +9,6 @@ class ConfigFile:
         self._config = configparser.ConfigParser()
         self._config.read(self._file_path)
 
-        # DEBUG
-        if self._config == None: print("Failed to read the configuration")
-        print(str(self._file_path))
-
     def get_file_path(self) -> Path:
         return self._file_path
 

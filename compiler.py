@@ -9,13 +9,6 @@ from config_reader import ConfigFile
 class Compiler:
     def __init__(self, config_data: ConfigFile):
         self._config = config_data
-
-        # DEBUG
-        if self._config == None:
-            print("The config is None")
-            exit(-1)
-        print(str(self._config.contains_section("compilation")))
-        print(str(self._config.contains_section("build type")))
         
         # Reads the compilation data from the config file.
         # The compilation data is set to null if none is written.
@@ -31,8 +24,6 @@ class Compiler:
         if self._config.contains_section("build type"):
             self._build_data = self._config.get_section("build type")
         else:
-            # DEBUG
-            print("No build data could be found")
             self._build_data = None
 
     def get_compiler(self) -> str | None:
@@ -131,15 +122,11 @@ class Compiler:
         default_value = "standard"
 
         if self._build_data == None:
-            # DEBUG
-            print("Build data is none")
             return default_value
 
         if "type" in self._build_data:
             return self._build_data["type"]
         else:
-            # DEBUG
-            print("Build data was not written")
             return default_value
 
     def get_entry_point(self) -> str | None:
