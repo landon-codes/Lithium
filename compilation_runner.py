@@ -52,12 +52,14 @@ def _build_standard(compiler: Compiler) -> None:
     sys.exit(-1)
 
 
-# TODO
 def _build_full(compiler: Compiler) -> None:
-    print("Full builds are not supported yet.")
-    sys.exit(-1)
+    build_arguments = get_build_arguments(compiler)
 
+    files = compiler.get_all_files()
+    build_arguments.extend(files)
 
+    subprocess.run(build_arguments, check=False, stderr=sys.stderr, text=True)
+    
 def build(compiler: Compiler) -> None:
     build_type = compiler.get_build_type()
     

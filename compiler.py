@@ -138,6 +138,22 @@ class Compiler:
         if self._build_data != None and "entry_point" in self._build_data:
             return self._build_data["entry_point"]
 
+    def get_all_files(self) -> list[str]:
+        if self._build_data != None and "files" in self._build_data:
+            # .ini files do not natively support lists, so instead we use a
+            # string where files are seperated by commas.
+            files_str = self._build_data["files"]
+            files = [f.strip() for f in files_str.split(",") if f.strip()]
+
+            # Remove extra quotes from the file names
+            files[0] = files[0][1:]
+            file_len = len(files[1])
+            files[1] = files[1][0:file_len-1]
+
+            return files
+        else:
+            return self._detect_files()
+
     @staticmethod
     def _detect_compilers() -> str | None:
         compiler_calls = {
@@ -159,14 +175,44 @@ class Compiler:
         # Try to get the language from the entry point
         entry_point = self.get_entry_point()
         if entry_point != None:
-            return pathlib.Path(entry_point).suffix
+            suffix = pathlib.Path(entry_point).suffix
+            match suffix:
+                case ".c":
+                    return "c"
+                case ".cpp" | ".c++":
+                    return "c++"
 
         # If the entry point fails, try detecting it manually
         project_root = self._config.get_file_path().parent
         project_files = [f for f in project_root.rglob("*") if f.is_file()]
 
         for file in project_files:
-            if file.suffix == "c":
+            if file.suffix == ".c":
                 return "c"
-            elif file.suffix == "cpp" or file.suffix == "c++":
+            elif file.suffix == ".cpp" or file.suffix == ".c++":
                 return "c++"
+
+    def _detect_files(self) -> list[str]:
+        language = self._detect_language()
+        project_root = self._config.get_file_path().parent
+
+        if language == None:
+            print("The project language could not be detected when trying to detect the project files.")
+            exit(-1)
+
+        files: list[str]
+
+        if language == "c":
+            files = [str(f) for f in project_root.rglob("*.c") if f.is_file()]
+        elif language == "c++":
+            files = [str(f) for f in project_root.rglob("*.cpp") if f.is_file()]
+
+            # Tries searching for .c++ files if no .cpp files are found.
+            if len(files) < 1:
+                files = [str(f) for f in project_root.rglob("*.c++") if f.is_file()]
+
+        if len(files) < 1:
+            print("No files could be detected in the project.")
+            exit(-1)
+
+        return files
