@@ -43,7 +43,7 @@ def _build_unity(compiler: Compiler) -> None:
         print("No entry point could be found when running the program.")
         sys.exit(-1)
 
-    subprocess.run(arguments, check=False, stderr=sys.stderr, text=True)
+    _run_compilation(compiler, arguments)
 
 
 # TODO
@@ -58,7 +58,13 @@ def _build_full(compiler: Compiler) -> None:
     files = compiler.get_all_files()
     build_arguments.extend(files)
 
-    subprocess.run(build_arguments, check=False, stderr=sys.stderr, text=True)
+    _run_compilation(compiler, build_arguments)
+
+def _run_compilation(compiler: Compiler, arguments: list[str]):
+    subprocess.run(arguments, check=False, stderr=sys.stderr, text=True)
+
+def _run_output(application_name: str):
+    subprocess.run([application_name], check=False, text=True, stderr=sys.stderr)
     
 def build(compiler: Compiler) -> None:
     build_type = compiler.get_build_type()
@@ -90,4 +96,4 @@ def run(compiler: Compiler) -> None:
         case _:
             application_name = "./a.out"
 
-    subprocess.run([application_name], check=False, text=True, stderr=sys.stderr)
+    _run_output(application_name)
