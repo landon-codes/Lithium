@@ -86,7 +86,9 @@ def build(compiler: Compiler) -> None:
 
 # TODO: Implement the option for application names on build
 def run(compiler: Compiler) -> None:
-    build(compiler)
+    try:
+        build(compiler)
+    except: return
 
     # Detect OS format
     application_name: str

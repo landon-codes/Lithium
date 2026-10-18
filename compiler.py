@@ -44,7 +44,7 @@ class Compiler:
 
             compiler = self.get_compiler()
             match compiler:
-                case "gcc" | "g++" | "clang":
+                case "gcc" | "g++" | "clang" | "clang++":
                     return f"-std={standard}"
                 case "tcc":
                     print("TCC does not support configuration of the standard.")
@@ -64,7 +64,7 @@ class Compiler:
         ):
             compiler = self.get_compiler()
             match compiler:
-                case "gcc" | "g++" | "clang":
+                case "gcc" | "g++" | "clang" | "clang++":
                     return ["-Wall", "-Wextra"]
                 case "tcc":
                     return ["-Wall"]
@@ -85,7 +85,7 @@ class Compiler:
         ):
             compiler = self.get_compiler()
             match compiler:
-                case "gcc" | "g++" | "clang":
+                case "gcc" | "g++" | "clang" | "clang++":
                     return "-Werror"
                 case "tcc":
                     print("Compiling warnings as errors is not supported by tcc.")
@@ -107,7 +107,7 @@ class Compiler:
         ):
             compiler = self.get_compiler()
             match compiler:
-                case "gcc" | "g++" | "clang":
+                case "gcc" | "g++" | "clang" | "clang++":
                     return "-pedantic-errors"
                 case "tcc":
                     print("Disabling GNU extensions is not supported by tcc.")
