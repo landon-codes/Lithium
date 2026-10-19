@@ -14,8 +14,9 @@ def get_build_arguments(compiler: Compiler) -> list[str]:
         sys.exit(-1)
     build_arguments.append(compiler_name)
 
-    output_file = compiler.get_output_file()
-    build_arguments.extend(output_file)
+    if compiler.get_build_type() != "standard":
+        output_file = compiler.get_output_file()
+        build_arguments.extend(output_file)
 
     standard = compiler.get_standard()
     if standard != None:
@@ -54,24 +55,26 @@ def _build_standard(compiler: Compiler) -> None:
     output_directory = pathlib.Path(compiler.get_output_file_name()).parent
     compilation_arguments = get_build_arguments(compiler)
 
-    compilation_command = [
-        "cd",
-        output_directory,
-        "&&"
-    ]
-    compilation_command.extend(compilation_arguments)
-
+    object_extension: str
     match compiler.get_compiler():
         case "gcc" | "g++" | "clang" | "clang++" | "tcc":
-            compilation_command.append("-c")
+            compilation_arguments.append("-c")
+            object_extension = ".o"
         case "cl":
-            compilation_command.append("/c")
+            compilation_arguments.append("/c")
+            object_extension = ".obj"
 
     for file in new_files:
-        file_path = pathlib.Path("../") / file
-        compilation_command.append(str(file_path))
+        original_file = pathlib.Path(file)
+        file_object = str(output_directory / original_file.stem) + object_extension
 
-    _run_compilation(compilation_command)
+        compilation_command = compilation_arguments.copy()
+        compilation_command.extend([file, "-o", file_object])
+
+        #DEBUG
+        print(compilation_command)
+
+        _run_compilation(compilation_command)
 
 def _build_full(compiler: Compiler) -> None:
     build_arguments = get_build_arguments(compiler)
