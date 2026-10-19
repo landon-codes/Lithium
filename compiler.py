@@ -1,4 +1,6 @@
 import configparser
+from datetime import datetime
+import os
 import pathlib
 import subprocess
 from sys import exit
@@ -44,7 +46,7 @@ class Compiler:
 
             compiler = self.get_compiler()
             match compiler:
-                case "gcc" | "g++" | "clang":
+                case "gcc" | "g++" | "clang" | "clang++":
                     return f"-std={standard}"
                 case "tcc":
                     print("TCC does not support configuration of the standard.")
@@ -64,7 +66,7 @@ class Compiler:
         ):
             compiler = self.get_compiler()
             match compiler:
-                case "gcc" | "g++" | "clang":
+                case "gcc" | "g++" | "clang" | "clang++":
                     return ["-Wall", "-Wextra"]
                 case "tcc":
                     return ["-Wall"]
@@ -85,7 +87,7 @@ class Compiler:
         ):
             compiler = self.get_compiler()
             match compiler:
-                case "gcc" | "g++" | "clang":
+                case "gcc" | "g++" | "clang" | "clang++":
                     return "-Werror"
                 case "tcc":
                     print("Compiling warnings as errors is not supported by tcc.")
@@ -107,7 +109,7 @@ class Compiler:
         ):
             compiler = self.get_compiler()
             match compiler:
-                case "gcc" | "g++" | "clang":
+                case "gcc" | "g++" | "clang" | "clang++":
                     return "-pedantic-errors"
                 case "tcc":
                     print("Disabling GNU extensions is not supported by tcc.")
@@ -138,6 +140,81 @@ class Compiler:
         if self._build_data != None and "entry_point" in self._build_data:
             return self._build_data["entry_point"]
 
+    def get_all_files(self) -> list[str]:
+        if self._build_data != None and "files" in self._build_data:
+            # .ini files do not natively support lists, so instead we use a
+            # string where files are seperated by commas.
+            files_str = self._build_data["files"]
+            files = [f.strip() for f in files_str.split(",") if f.strip()]
+
+            # Remove extra quotes from the file names
+            files[0] = files[0][1:]
+            file_len = len(files[1])
+            files[1] = files[1][0:file_len-1]
+
+            return files
+        else:
+            return self._detect_files()
+
+    def get_new_files(self) -> list[str]:
+        output_directory = pathlib.Path(self.get_output_file_name()).parent
+        files_found: list[str] = []
+        
+        all_files = self.get_all_files()
+
+        object_extension: str
+        match os.name:
+            case "nt":
+                object_extension = ".obj"
+            case _:
+                object_extension = ".o"
+
+        for file in all_files:
+            original_path = pathlib.Path(file)
+            object_file = output_directory / (original_path.stem + object_extension)
+
+            if not object_file.exists():
+                files_found.append(str(original_path))
+                continue
+
+            original_path_modification_date = datetime.fromtimestamp(original_path.stat().st_mtime)
+            object_file_modification_date = datetime.fromtimestamp(object_file.stat().st_mtime)
+
+            if original_path_modification_date > object_file_modification_date:
+                files_found.append(str(original_path))
+
+        return files_found
+
+    def get_output_file_name(self) -> str:
+        default_value = "bin/main" 
+        output_name: str
+
+        if self._build_data == None:
+            output_name = default_value
+
+        if "output_name" in self._build_data:
+            output_name = self._build_data["output_name"]
+        else:
+            output_name = default_value
+
+        os_extension: str
+        match os.name:
+            case "nt":
+                os_extension = ".exe"
+            case _:
+                os_extension = ""
+
+        return output_name + os_extension
+
+    def get_output_file(self) -> list[str]:
+        output_name = self.get_output_file_name()
+
+        match self.get_compiler():
+            case "gcc" | "g++" | "clang" | "clang++" | "tcc":
+                return ["-o", f"{output_name}"]
+            case "cl":
+                return [f"/Fe\"{output_name}\""]
+
     @staticmethod
     def _detect_compilers() -> str | None:
         compiler_calls = {
@@ -159,14 +236,44 @@ class Compiler:
         # Try to get the language from the entry point
         entry_point = self.get_entry_point()
         if entry_point != None:
-            return pathlib.Path(entry_point).suffix
+            suffix = pathlib.Path(entry_point).suffix
+            match suffix:
+                case ".c":
+                    return "c"
+                case ".cpp" | ".c++":
+                    return "c++"
 
         # If the entry point fails, try detecting it manually
         project_root = self._config.get_file_path().parent
         project_files = [f for f in project_root.rglob("*") if f.is_file()]
 
         for file in project_files:
-            if file.suffix == "c":
+            if file.suffix == ".c":
                 return "c"
-            elif file.suffix == "cpp" or file.suffix == "c++":
+            elif file.suffix == ".cpp" or file.suffix == ".c++":
                 return "c++"
+
+    def _detect_files(self) -> list[str]:
+        language = self._detect_language()
+        project_root = self._config.get_file_path().parent
+
+        if language == None:
+            print("The project language could not be detected when trying to detect the project files.")
+            exit(-1)
+
+        files: list[str]
+
+        if language == "c":
+            files = [str(f) for f in project_root.rglob("*.c") if f.is_file()]
+        elif language == "c++":
+            files = [str(f) for f in project_root.rglob("*.cpp") if f.is_file()]
+
+            # Tries searching for .c++ files if no .cpp files are found.
+            if len(files) < 1:
+                files = [str(f) for f in project_root.rglob("*.c++") if f.is_file()]
+
+        if len(files) < 1:
+            print("No files could be detected in the project.")
+            exit(-1)
+
+        return files

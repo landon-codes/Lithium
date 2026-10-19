@@ -1,11 +1,11 @@
-import os
+import pathlib
 import subprocess
 import sys
 
 from compiler import Compiler
 
 
-def get_build_arguments(compiler: Compiler) -> list[str]:
+def get_build_arguments(compiler: Compiler, include_output_dir: bool = True) -> list[str]:
     build_arguments = []
 
     compiler_name = compiler.get_compiler()
@@ -13,6 +13,10 @@ def get_build_arguments(compiler: Compiler) -> list[str]:
         print("No supported compiler could be found.")
         sys.exit(-1)
     build_arguments.append(compiler_name)
+
+    if include_output_dir:
+        output_file = compiler.get_output_file()
+        build_arguments.extend(output_file)
 
     standard = compiler.get_standard()
     if standard != None:
@@ -43,21 +47,51 @@ def _build_unity(compiler: Compiler) -> None:
         print("No entry point could be found when running the program.")
         sys.exit(-1)
 
+    _run_compilation(arguments)
+
+
+def _build_standard(compiler: Compiler) -> None:
+    new_files = compiler.get_new_files()
+    output_directory = pathlib.Path(compiler.get_output_file_name()).parent
+    compilation_arguments = get_build_arguments(compiler, include_output_dir=False)
+
+    object_extension: str
+    match compiler.get_compiler():
+        case "gcc" | "g++" | "clang" | "clang++" | "tcc":
+            compilation_arguments.append("-c")
+            object_extension = ".o"
+        case "cl":
+            compilation_arguments.append("/c")
+            object_extension = ".obj"
+
+    for file in new_files:
+        original_file = pathlib.Path(file)
+        file_object = str(output_directory / original_file.stem) + object_extension
+
+        compilation_command = compilation_arguments.copy()
+        compilation_command.extend([file, "-o", file_object])
+
+        _run_compilation(compilation_command)
+
+    object_files = [str(f) for f in output_directory.rglob(f"*{object_extension}") if f.is_file()]
+    final_compilation_command = get_build_arguments(compiler, include_output_dir=True)
+    final_compilation_command.extend(object_files)
+    _run_compilation(final_compilation_command)
+
+def _build_full(compiler: Compiler) -> None:
+    build_arguments = get_build_arguments(compiler)
+
+    files = compiler.get_all_files()
+    build_arguments.extend(files)
+
+    _run_compilation(build_arguments)
+
+def _run_compilation(arguments: list[str]):
     subprocess.run(arguments, check=False, stderr=sys.stderr, text=True)
 
-
-# TODO
-def _build_standard(compiler: Compiler) -> None:
-    print("Standard builds are not supported yet.")
-    sys.exit(-1)
-
-
-# TODO
-def _build_full(compiler: Compiler) -> None:
-    print("Full builds are not supported yet.")
-    sys.exit(-1)
-
-
+def _run_output(application_name: str):
+    subprocess.run([application_name], check=False, text=True, stderr=sys.stderr)
+    
 def build(compiler: Compiler) -> None:
     build_type = compiler.get_build_type()
     
@@ -75,17 +109,11 @@ def build(compiler: Compiler) -> None:
             )
             sys.exit(-1)
 
-
-# TODO: Implement the option for application names on build
 def run(compiler: Compiler) -> None:
-    build(compiler)
+    try:
+        build(compiler)
+    except: return
 
-    # Detect OS format
-    application_name: str
-    match os.name:
-        case "nt":
-            application_name = "./a.exe"
-        case _:
-            application_name = "./a.out"
+    application_name = compiler.get_output_file_name()
 
-    subprocess.run([application_name], check=False, text=True, stderr=sys.stderr)
+    _run_output(application_name)
