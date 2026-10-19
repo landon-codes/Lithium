@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -19,6 +20,9 @@ if not config_file_path.exists():
 config = config_reader.ConfigFile(config_file_path)
 
 compiler = Compiler(config)
+
+output_dir = Path(compiler.get_output_file_name()).parent
+os.makedirs(output_dir, exist_ok=True)
 
 match sys.argv[1]:
     case "build":

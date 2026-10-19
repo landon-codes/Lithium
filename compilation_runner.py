@@ -51,7 +51,7 @@ def _build_unity(compiler: Compiler) -> None:
 
 def _build_standard(compiler: Compiler) -> None:
     new_files = compiler.get_new_files()
-    output_directory = pathlib.Path(compiler.get_output_file_name).parent
+    output_directory = pathlib.Path(compiler.get_output_file_name()).parent
     compilation_arguments = get_build_arguments(compiler)
 
     compilation_command = [
