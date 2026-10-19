@@ -14,6 +14,9 @@ def get_build_arguments(compiler: Compiler) -> list[str]:
         sys.exit(-1)
     build_arguments.append(compiler_name)
 
+    output_file = compiler.get_output_file()
+    build_arguments.extend(output_file)
+
     standard = compiler.get_standard()
     if standard != None:
         build_arguments.append(standard)
@@ -83,19 +86,11 @@ def build(compiler: Compiler) -> None:
             )
             sys.exit(-1)
 
-
-# TODO: Implement the option for application names on build
 def run(compiler: Compiler) -> None:
     try:
         build(compiler)
     except: return
 
-    # Detect OS format
-    application_name: str
-    match os.name:
-        case "nt":
-            application_name = "./a.exe"
-        case _:
-            application_name = "./a.out"
+    application_name = compiler.get_output_file_name()
 
     _run_output(application_name)

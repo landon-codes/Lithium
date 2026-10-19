@@ -1,4 +1,5 @@
 import configparser
+import os
 import pathlib
 import subprocess
 from sys import exit
@@ -153,6 +154,36 @@ class Compiler:
             return files
         else:
             return self._detect_files()
+
+    def get_output_file_name(self) -> str:
+        default_value = "bin/main" 
+        output_name: str
+
+        if self._build_data == None:
+            output_name = default_value
+
+        if "output_name" in self._build_data:
+            output_name = self._build_data["output_name"]
+        else:
+            output_name = default_value
+
+        os_extension: str
+        match os.name:
+            case "nt":
+                os_extension = ".exe"
+            case _:
+                os_extension = ""
+
+        return output_name + os_extension
+
+    def get_output_file(self) -> list[str]:
+        output_name = self.get_output_file_name()
+
+        match self.get_compiler():
+            case "gcc" | "g++" | "clang" | "clang++" | "tcc":
+                return ["-o", f"{output_name}"]
+            case "cl":
+                return [f"/Fe\"{output_name}\""]
 
     @staticmethod
     def _detect_compilers() -> str | None:
