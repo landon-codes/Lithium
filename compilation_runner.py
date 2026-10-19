@@ -1,4 +1,4 @@
-import os
+import pathlib
 import subprocess
 import sys
 
@@ -49,11 +49,26 @@ def _build_unity(compiler: Compiler) -> None:
     _run_compilation(compiler, arguments)
 
 
-# TODO
 def _build_standard(compiler: Compiler) -> None:
-    print("Standard builds are not supported yet.")
-    sys.exit(-1)
+    new_files = compiler.get_new_files()
+    output_directory = pathlib.Path(compiler.get_output_file_name).parent
+    compilation_arguments = get_build_arguments(compiler)
 
+    compilation_command = [
+        "cd",
+        output_directory,
+        "&&"
+    ]
+    compilation_command.extend(compilation_arguments)
+
+    # TODO: Get the argument to add to the compilation command to output
+    # object files instead of an executable.
+
+    #TODO: Add `../` to the beginning of each file
+    # and append that file to the end of the 
+    # compilation command so that it can be compiled.
+    for file in new_files:
+        pass
 
 def _build_full(compiler: Compiler) -> None:
     build_arguments = get_build_arguments(compiler)
