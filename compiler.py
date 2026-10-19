@@ -157,6 +157,7 @@ class Compiler:
             return self._detect_files()
 
     def get_new_files(self) -> list[str]:
+        output_directory = pathlib.Path(self.get_output_file_name()).parent
         files_found: list[str] = []
         
         all_files = self.get_all_files()
@@ -170,7 +171,7 @@ class Compiler:
 
         for file in all_files:
             original_path = pathlib.Path(file)
-            object_file = original_path.parent / (original_path.stem + object_extension)
+            object_file = output_directory / (original_path.stem + object_extension)
 
             if not object_file.exists():
                 files_found.append(str(original_path))
