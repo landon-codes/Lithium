@@ -61,14 +61,17 @@ def _build_standard(compiler: Compiler) -> None:
     ]
     compilation_command.extend(compilation_arguments)
 
-    # TODO: Get the argument to add to the compilation command to output
-    # object files instead of an executable.
+    match compiler.get_compiler():
+        case "gcc" | "g++" | "clang" | "clang++" | "tcc":
+            compilation_command.append("-c")
+        case "cl":
+            compilation_command.append("/c")
 
-    #TODO: Add `../` to the beginning of each file
-    # and append that file to the end of the 
-    # compilation command so that it can be compiled.
     for file in new_files:
-        pass
+        file_path = pathlib.Path("../") / file
+        compilation_command.append(str(file_path))
+
+    _run_compilation(compiler, compilation_command)
 
 def _build_full(compiler: Compiler) -> None:
     build_arguments = get_build_arguments(compiler)
