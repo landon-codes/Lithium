@@ -1,4 +1,5 @@
 import configparser
+from datetime import datetime
 import os
 import pathlib
 import subprocess
@@ -154,6 +155,35 @@ class Compiler:
             return files
         else:
             return self._detect_files()
+
+    def get_new_files(self) -> list[str]:
+        files_found: list[str] = []
+        
+        all_files = self.get_all_files()
+        output_directory = pathlib.Path(self.get_output_file_name()).parent
+
+        object_extension: str
+        match os.name:
+            case "nt":
+                object_extension = ".obj"
+            case _:
+                object_extension = ".o"
+
+        for file in all_files:
+            original_path = pathlib.Path(file)
+            object_file = original_path.parent / (original_path.stem + object_extension)
+
+            if not object_file.exists():
+                files_found.append(str(original_path))
+                continue
+
+            original_path_modification_date = datetime.fromtimestamp(original_path.stat().st_mtime)
+            object_file_modification_date = datetime.fromtimestamp(object_file.stat().st_mtime)
+
+            if original_path_modification_date > object_file_modification_date:
+                files_found.append(str(original_path))
+
+        return files_found
 
     def get_output_file_name(self) -> str:
         default_value = "bin/main" 
