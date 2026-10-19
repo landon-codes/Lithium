@@ -160,7 +160,6 @@ class Compiler:
         files_found: list[str] = []
         
         all_files = self.get_all_files()
-        output_directory = pathlib.Path(self.get_output_file_name()).parent
 
         object_extension: str
         match os.name:
