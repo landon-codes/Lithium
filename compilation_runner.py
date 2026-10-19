@@ -46,7 +46,7 @@ def _build_unity(compiler: Compiler) -> None:
         print("No entry point could be found when running the program.")
         sys.exit(-1)
 
-    _run_compilation(compiler, arguments)
+    _run_compilation(arguments)
 
 
 def _build_standard(compiler: Compiler) -> None:
@@ -71,7 +71,7 @@ def _build_standard(compiler: Compiler) -> None:
         file_path = pathlib.Path("../") / file
         compilation_command.append(str(file_path))
 
-    _run_compilation(compiler, compilation_command)
+    _run_compilation(compilation_command)
 
 def _build_full(compiler: Compiler) -> None:
     build_arguments = get_build_arguments(compiler)
@@ -79,9 +79,9 @@ def _build_full(compiler: Compiler) -> None:
     files = compiler.get_all_files()
     build_arguments.extend(files)
 
-    _run_compilation(compiler, build_arguments)
+    _run_compilation(build_arguments)
 
-def _run_compilation(compiler: Compiler, arguments: list[str]):
+def _run_compilation(arguments: list[str]):
     subprocess.run(arguments, check=False, stderr=sys.stderr, text=True)
 
 def _run_output(application_name: str):
