@@ -16,6 +16,9 @@ def get_build_arguments(compiler: Compiler, include_output_dir: bool = True) -> 
 
     if include_output_dir:
         output_file = compiler.get_output_file()
+        if output_file is None:
+            print("There was an error getting the output file.")
+            sys.exit(-1)
         build_arguments.extend(output_file)
 
     standard = compiler.get_standard()
@@ -110,10 +113,6 @@ def build(compiler: Compiler) -> None:
             sys.exit(-1)
 
 def run(compiler: Compiler) -> None:
-    try:
-        build(compiler)
-    except: return
-
+    build(compiler)
     application_name = compiler.get_output_file_name()
-
     _run_output(application_name)

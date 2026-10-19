@@ -1,8 +1,8 @@
 import configparser
-from datetime import datetime
 import os
 import pathlib
 import subprocess
+from datetime import datetime
 from sys import exit
 
 from config_reader import ConfigFile
@@ -150,7 +150,7 @@ class Compiler:
             # Remove extra quotes from the file names
             files[0] = files[0][1:]
             file_len = len(files[1])
-            files[1] = files[1][0:file_len-1]
+            files[1] = files[1][0 : file_len - 1]
 
             return files
         else:
@@ -159,7 +159,7 @@ class Compiler:
     def get_new_files(self) -> list[str]:
         output_directory = pathlib.Path(self.get_output_file_name()).parent
         files_found: list[str] = []
-        
+
         all_files = self.get_all_files()
 
         object_extension: str
@@ -177,8 +177,12 @@ class Compiler:
                 files_found.append(str(original_path))
                 continue
 
-            original_path_modification_date = datetime.fromtimestamp(original_path.stat().st_mtime)
-            object_file_modification_date = datetime.fromtimestamp(object_file.stat().st_mtime)
+            original_path_modification_date = datetime.fromtimestamp( # noqa DTZ006
+                original_path.stat().st_mtime
+            )  
+            object_file_modification_date = datetime.fromtimestamp( # noqa DTZ006
+                object_file.stat().st_mtime
+            )
 
             if original_path_modification_date > object_file_modification_date:
                 files_found.append(str(original_path))
@@ -186,13 +190,13 @@ class Compiler:
         return files_found
 
     def get_output_file_name(self) -> str:
-        default_value = "bin/main" 
+        default_value = "bin/main"
         output_name: str
 
-        if self._build_data == None:
+        if self._build_data is not None:
             output_name = default_value
 
-        if "output_name" in self._build_data:
+        if self._build_data is not None and "output_name" in self._build_data:
             output_name = self._build_data["output_name"]
         else:
             output_name = default_value
@@ -206,14 +210,14 @@ class Compiler:
 
         return output_name + os_extension
 
-    def get_output_file(self) -> list[str]:
+    def get_output_file(self) -> list[str] | None:
         output_name = self.get_output_file_name()
 
         match self.get_compiler():
             case "gcc" | "g++" | "clang" | "clang++" | "tcc":
                 return ["-o", f"{output_name}"]
             case "cl":
-                return [f"/Fe\"{output_name}\""]
+                return [f'/Fe"{output_name}"']
 
     @staticmethod
     def _detect_compilers() -> str | None:
@@ -258,7 +262,9 @@ class Compiler:
         project_root = self._config.get_file_path().parent
 
         if language == None:
-            print("The project language could not be detected when trying to detect the project files.")
+            print(
+                "The project language could not be detected when trying to detect the project files."
+            )
             exit(-1)
 
         files: list[str]
