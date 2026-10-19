@@ -5,7 +5,7 @@ import sys
 from compiler import Compiler
 
 
-def get_build_arguments(compiler: Compiler) -> list[str]:
+def get_build_arguments(compiler: Compiler, include_output_dir: bool = True) -> list[str]:
     build_arguments = []
 
     compiler_name = compiler.get_compiler()
@@ -14,7 +14,7 @@ def get_build_arguments(compiler: Compiler) -> list[str]:
         sys.exit(-1)
     build_arguments.append(compiler_name)
 
-    if compiler.get_build_type() != "standard":
+    if include_output_dir:
         output_file = compiler.get_output_file()
         build_arguments.extend(output_file)
 
@@ -53,7 +53,7 @@ def _build_unity(compiler: Compiler) -> None:
 def _build_standard(compiler: Compiler) -> None:
     new_files = compiler.get_new_files()
     output_directory = pathlib.Path(compiler.get_output_file_name()).parent
-    compilation_arguments = get_build_arguments(compiler)
+    compilation_arguments = get_build_arguments(compiler, include_output_dir=False)
 
     object_extension: str
     match compiler.get_compiler():
@@ -71,10 +71,12 @@ def _build_standard(compiler: Compiler) -> None:
         compilation_command = compilation_arguments.copy()
         compilation_command.extend([file, "-o", file_object])
 
-        #DEBUG
-        print(compilation_command)
-
         _run_compilation(compilation_command)
+
+    object_files = [str(f) for f in output_directory.rglob(f"*{object_extension}") if f.is_file()]
+    final_compilation_command = get_build_arguments(compiler, include_output_dir=True)
+    final_compilation_command.extend(object_files)
+    _run_compilation(final_compilation_command)
 
 def _build_full(compiler: Compiler) -> None:
     build_arguments = get_build_arguments(compiler)
