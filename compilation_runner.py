@@ -25,6 +25,10 @@ def get_build_arguments(compiler: Compiler, include_output_dir: bool = True) -> 
     if standard != None:
         build_arguments.append(standard)
 
+    colors = compiler.get_argument_for_colored_output()
+    if colors != None:
+        build_arguments.append(colors)
+
     extra_warnings = compiler.get_extra_warnings()
     if extra_warnings != None:
         build_arguments.extend(extra_warnings)
