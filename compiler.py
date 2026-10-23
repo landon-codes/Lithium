@@ -219,6 +219,17 @@ class Compiler:
             case "cl":
                 return [f'/Fe"{output_name}"']
 
+    # It appears that msvc (cl) does not support forcing colored output.
+    # TCC doesn't support colored output at all.
+    def get_argument_for_colored_output(self) -> str | None:
+        compiler = self.get_compiler()
+
+        match compiler:
+            case "clang" | "clang++":
+                return "-fcolor-diagnostics"
+            case "gcc" | "g++":
+                return "-fdiagnostics-color=always"
+
     @staticmethod
     def _detect_compilers() -> str | None:
         compiler_calls = {
