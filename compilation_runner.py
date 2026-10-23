@@ -40,7 +40,7 @@ def get_build_arguments(compiler: Compiler, include_output_dir: bool = True) -> 
     return build_arguments
 
 
-def _build_unity(compiler: Compiler) -> None:
+def _build_unity(compiler: Compiler) -> bool:
     arguments = get_build_arguments(compiler)
 
     entry_point = compiler.get_entry_point()
@@ -50,10 +50,15 @@ def _build_unity(compiler: Compiler) -> None:
         print("No entry point could be found when running the program.")
         sys.exit(-1)
 
-    _run_compilation(arguments)
+    return _run_compilation(arguments)
 
 
-def _build_standard(compiler: Compiler) -> None:
+# TODO:
+# If this functions fails while compiling an object file,
+# the function will continue to try and compile the full
+# executable. This will cause errors if the program
+# tries to run the executable after.
+def _build_standard(compiler: Compiler) -> bool:
     new_files = compiler.get_new_files()
     output_directory = pathlib.Path(compiler.get_output_file_name()).parent
     compilation_arguments = get_build_arguments(compiler, include_output_dir=False)
@@ -73,38 +78,46 @@ def _build_standard(compiler: Compiler) -> None:
 
         compilation_command = compilation_arguments.copy()
         compilation_command.extend([file, "-o", file_object])
-
         _run_compilation(compilation_command)
 
     object_files = [str(f) for f in output_directory.rglob(f"*{object_extension}") if f.is_file()]
     final_compilation_command = get_build_arguments(compiler, include_output_dir=True)
     final_compilation_command.extend(object_files)
-    _run_compilation(final_compilation_command)
+    return _run_compilation(final_compilation_command)
 
-def _build_full(compiler: Compiler) -> None:
+def _build_full(compiler: Compiler) -> bool:
     build_arguments = get_build_arguments(compiler)
 
     files = compiler.get_all_files()
     build_arguments.extend(files)
 
-    _run_compilation(build_arguments)
+    return _run_compilation(build_arguments)
 
-def _run_compilation(arguments: list[str]):
-    subprocess.run(arguments, check=False, stderr=sys.stderr, text=True)
+# Returns true if the compilation was successfull.
+def _run_compilation(arguments: list[str]) -> bool:
+    compilation = subprocess.run(arguments, check=False, text=True, capture_output=True)
+
+    errors = compilation.stderr
+
+    if errors is not None and errors != "":
+        print(errors)
+        return False
+    
+    return True
 
 def _run_output(application_name: str):
-    subprocess.run([application_name], check=False, text=True, stderr=sys.stderr)
+    subprocess.run([application_name], check=False, text=True, stderr=sys.stderr, stdout=sys.stdout)
     
-def build(compiler: Compiler) -> None:
+def build(compiler: Compiler) -> bool:
     build_type = compiler.get_build_type()
     
     match build_type:
         case "unity":
-            _build_unity(compiler)
+            return _build_unity(compiler)
         case "standard":
-            _build_standard(compiler)
+            return _build_standard(compiler)
         case "full build":
-            _build_full(compiler)
+            return _build_full(compiler)
         case _:
             print(f'The build type, "{build_type}" does not appear to be supported.')
             print(
@@ -113,6 +126,7 @@ def build(compiler: Compiler) -> None:
             sys.exit(-1)
 
 def run(compiler: Compiler) -> None:
-    build(compiler)
+    build_succeeded = build(compiler)
     application_name = compiler.get_output_file_name()
-    _run_output(application_name)
+
+    if build_succeeded: _run_output(application_name)
